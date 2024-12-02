@@ -7,7 +7,7 @@ public class Main{
         char[] wordOne = {'c', 'b', 'c'};
         MyWord word1 = new MyWord(wordOne);
 
-        char[] wordTwo = {'b', 'a', 'a'};
+        char[] wordTwo = {'b','x','x'};
         MyWord word2 = new MyWord(wordTwo);
 
         char[] wordThree = {'c', 'a', 't'};
@@ -22,6 +22,8 @@ public class Main{
 
         System.out.println(word3.equals(word4));
         System.out.println(word3.hashCode() == word4.hashCode());
+
+        MySpellChecker.spellChecker(word2);
 
     }
 }

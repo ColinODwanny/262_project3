@@ -57,7 +57,24 @@ public class MyWord implements Comparable<MyWord> {
     }
 
     //I think this needs to change to public boolean equals( Object o ) for HashSet.contains() to work properly 
-    public boolean equals(MyWord otherWord){
+    /*public boolean equals(MyWord otherWord){
+        boolean returnVal;
+        if(myCharArr.length == otherWord.myCharArr.length) { //checks if words are same length
+            returnVal = true;
+            for(int i = 0; i < myCharArr.length; i++) {
+                if(myCharArr[i] != otherWord.myCharArr[i]) {
+                    returnVal = false;
+                }
+            }
+        } 
+        else {
+            returnVal = false;
+        }
+        return returnVal;
+    }*/
+
+    public boolean equals(Object o){
+        MyWord otherWord = (MyWord)o;
         boolean returnVal;
         if(myCharArr.length == otherWord.myCharArr.length) { //checks if words are same length
             returnVal = true;
