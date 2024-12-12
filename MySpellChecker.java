@@ -1,60 +1,87 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.util.TreeSet;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-public class MySpellChecker{
+public class MySpellChecker {
+    public static void main(String[] args) throws IOException {
+        Scanner scnr = new Scanner(System.in);
+        int userChoice;
 
-    public static void spellChecker(MyWord inputWord) {
-        File source;
-        //FileWriter w;
-        Scanner scanForFile = new Scanner(System.in); //scanForFile will point to a file later instead of System.in.  I just needed to initialize it
-        Scanner in = new Scanner(System.in); //used to take in input
-        source = new File("dictionary.txt");
-
-        /*try{
-        w = new FileWriter(source); //used to write new lines into dicitonary.txt
-        }catch (IOException ioe) {
-            ioe.printStackTrace();
-        }*/
-        
-        try {
-            scanForFile = new Scanner(source);
-        } catch (FileNotFoundException fnfe) {
-            fnfe.printStackTrace();
+        // Add all words from the dictionary and store them in a TreeSet
+        TreeSet<String> dictionary = new TreeSet<>();
+        BufferedReader reader = new BufferedReader(new FileReader("dictionary.txt"));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            dictionary.add(line.trim().toLowerCase());
         }
-        HashSet<MyWord> setOfWords = new HashSet<>();
 
-        while(scanForFile.hasNext()){ //Scans through every line in dictionary.txt, and puts word in HashSet
-            MyWord wordToAdd = new MyWord(scanForFile.next().toCharArray());
-            setOfWords.add(wordToAdd);
-        }
-        if(!setOfWords.contains(inputWord)) {
-            int selection = -1; //Initialized to -1 so it will enter the while loop
-            while(selection > 3 || selection < 0){
-                System.out.println("this word is not in the dictionary");
-                System.out.println("Press 1 to reenter the word");
-                System.out.println("Press 2 to ignore");
-                System.out.println("Press 3 to add word to dictionary");
-                selection = in.nextInt();
-            }
-            if(selection == 1) {
-                // TO DO  
-            }
-            else if(selection == 2) {
+        // Prepare lists for input words and ignored words
+        List<String> wordsToIgnore = new ArrayList<>();
 
-            }
-            else if(selection == 3) {
-                try{
-                    FileWriter w = new FileWriter(source, true); //used to write new lines into dicitonary.txt
-                    w.write("\n");
-                    w.write(inputWord.myCharArr);
-                    w.close();
-                    }catch (IOException ioe) {
-                        ioe.printStackTrace();
+        // Read the input file
+        try (BufferedReader myReader = new BufferedReader(new FileReader("input.txt"))) {
+            String line2;
+            while ((line2 = myReader.readLine()) != null) {
+                String[] lineWords = line2.split("\\s+");
+                for (String myWord : lineWords) {
+                    String cleanWord = wordCleaner(myWord).toLowerCase();
+                    if (!cleanWord.isEmpty() && !dictionary.contains(cleanWord) && !wordsToIgnore.contains(cleanWord)) {
+                        // Display the line and the misspelled word
+                        System.out.println("Line: " + line2);
+                        System.out.println("Word not in dictionary: " + cleanWord);
+
+                        // User options
+                        System.out.println("What would you like to do with this word?");
+                        System.out.println("1: Add it to the dictionary");
+                        System.out.println("2: Ignore it");
+                        System.out.println("3: Ignore all cases of it");
+                        System.out.println("4: Make corrections to the word");
+
+                        userChoice = scnr.nextInt();
+                        
+                        scnr.nextLine();
+
+                        switch (userChoice) {
+                            case 1:
+                                dictionary.add(cleanWord);
+                                System.out.println("The word " + cleanWord +  " has been added to the dictionary.");
+                                break;
+                            case 2:
+                                System.out.println("Ignoring the word " + cleanWord );
+                                break;
+                            case 3:
+                                wordsToIgnore.add(cleanWord);
+                                System.out.println("Ignoring all cases of the word " + cleanWord );
+                                break;
+                            case 4:
+                                System.out.println("Enter the correct word:");
+                                String newWord = scnr.nextLine();
+                                System.out.println("Replaced " + cleanWord + " with " + newWord );
+                                break;
+                            default:
+                                System.out.println("Please make a valid selection.");
+                        }
                     }
+                }
             }
+        } catch (IOException e) {
+            System.out.println("Cannot read the file: " + e.getMessage());
         }
     }
+
+    // Method to clean up a word
+    public static String wordCleaner(String word) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : word.toCharArray()) {
+            if (Character.isLetter(c) || c == '\'' || c == '-'){
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 }
+
