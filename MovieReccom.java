@@ -11,15 +11,14 @@ import java.util.*;
  */
 public class MovieReccom {
 
-    //Used and explained in CSVLine. I am Unsure if it should be a static variable or not
+    //I am Unsure if these should be a static variables or not
     static LinkedList<Integer> commaIndexes = new LinkedList<>();
-    static int currentComma;
     static String[] PartsOfMovie = new String[3];
-    static String fullLine = "";
-    static int previousComma;
     static char comma = ',';
     
+    
         public static void main(String[] args) {
+            Scanner in = new Scanner(System.in);
             // Default dataset is small
             String dataset = "small";
     
@@ -30,6 +29,50 @@ public class MovieReccom {
     
             // Call the loadData method with the selected dataset
             loadData(dataset);
+            
+
+            //First menu
+            System.out.println("Choose from the following menu:");
+            System.out.println("  1 - See top n");
+            System.out.println("  2 - See top n in given genre(s)");
+            System.out.println("  3 - search movie titles");
+            System.out.println("  4 - quit");
+
+            //This loop ensures that the user enters an int that is between 1 (inclusive) and 4 (inclusive)
+            int menuOneOptionInt = 0;
+            boolean keepLooping = true;
+            while(keepLooping){
+                String menuOneOption = in.next();
+                try { 
+                    menuOneOptionInt = Integer.parseInt(menuOneOption);
+                    if (menuOneOptionInt > 0 && menuOneOptionInt < 5) {
+                        keepLooping = false;
+                    } else {
+                        System.out.println("Please enter a valid integer (1 - 4)");
+                    }
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Please enter a valid integer (1 - 4)");
+                }
+            }
+
+            if (menuOneOptionInt == 1) {
+                int topN = 0;
+                keepLooping = true;
+                while(keepLooping) {
+                    try {
+                        System.out.print("n: ");
+                        topN = in.nextInt();
+                        keepLooping = false;
+                    } catch (InputMismatchException ime) {
+                        System.out.println("Please enter a valid integer");
+                        //clears out buffer
+                        in.nextLine();
+                    }
+                }
+                //optionOne(topN);
+
+                
+            }
         }
     
         // Method to load the dataset based on the input (either "small" or "large")
@@ -41,38 +84,54 @@ public class MovieReccom {
             List<Rating> ratingsList = new ArrayList<>();
     
             // Load movies from the movies.csv file
-            try (BufferedReader movieReader = new BufferedReader(new FileReader("small_movies.csv"))) {
-                String line;
+            try (BufferedReader movieReader = new BufferedReader(new FileReader("small_movies.csv"));
+            BufferedReader ratingReader = new BufferedReader(new FileReader(dataset + "/ratings.csv"));) {
+
+                String ratingLine;
+
+                //This gets rid of the table headings because if we pass "userId" into parseInt, it'll break
+                ratingReader.readLine();
+                while ((ratingLine = ratingReader.readLine()) != null) {
+                    // Split the line into parts (userId, movieId, and rating)
+                    String[] parts = ratingLine.split(",");
+    
+                    // Parse the userId, movieId, and rating values
+                    
+                    int userId = Integer.parseInt(parts[0]);
+                    int movieId = Integer.parseInt(parts[1]);
+                    double rating = Double.parseDouble(parts[2]);
+    
+                    // Create a Rating object and add it to the ratingsList
+                    ratingsList.add(new Rating(userId, movieId, rating));
+                }
+                String movieLine;
 
                 /*This gets rid of the first line because it has the table headings. 
                 if we pass the table heading "movie" into ParseInt, it is going to throw an error*/ 
                 movieReader.readLine();
 
-                while ((line = movieReader.readLine()) != null) {
+                while ((movieLine = movieReader.readLine()) != null) {
                     // Parse the current CSV line into parts using the CSVLine method
-                    String[] parts = CSVLine(line);
+                    String[] parts = CSVLine(movieLine);
     
                     // Get the movie ID, title, and genre from the parsed parts
                     int movieId = Integer.parseInt(parts[0]);
                     String title = parts[1];
     
-                    // Split the genres into an array (separated by '|')
                     String[] genres = parts[2].split("\\|"); 
-                    for(int i = 0; i < genres.length; i++) {
-                        System.out.println(genres[i]);
-                    }
     
                     // Create a list of genres for the current movie
                     List<String> genreList = new ArrayList<>(Arrays.asList(genres));
     
                     // Create a Movie object and store it in the movieMap with the movieId as the key
-                    movieMap.put(movieId, new Movie(movieId, title, genreList));
+
+                    //movieMap.put(movieId, new Movie(movieId, title, genreList));
                 }
             } catch (IOException e) {
                 // If the movies.csv file can't be found or read, print an error message
                 System.out.println("Can't find movies.csv");
             }
-    
+            /* 
             // Load ratings from the ratings.csv file based on the specified dataset
             try (BufferedReader ratingReader = new BufferedReader(new FileReader(dataset + "/ratings.csv"))) {
                 String line;
@@ -96,6 +155,7 @@ public class MovieReccom {
                 // If the ratings.csv file can't be found or read, print an error message
                 System.out.println("This file DOES NOT exist ");
             }
+                */
         }
     
         
@@ -127,7 +187,6 @@ public class MovieReccom {
     }*/
     
         public static String[] CSVLine(String line){
-            fullLine = String.copyValueOf(line.toCharArray());
             /*commaIndexes is going to hold the indexes of all the commas in the line.
             Then we are going to split the line on the first and last comma using peekFirst() and peakLast().
             first we clear the commaIndexes because otherwise it will be holding values from the last line*/
@@ -145,6 +204,10 @@ public class MovieReccom {
         PartsOfMovie[2] = line.substring(commaIndexes.peekLast() + 1);
 
         return PartsOfMovie;
+    }
+
+    public void optionOne(int n) {
+
     }
 }
 

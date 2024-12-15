@@ -1,4 +1,3 @@
-import java.util.List;
 /**
  * Write a description of class movies here.
  *
@@ -9,12 +8,16 @@ import java.util.List;
 public class Movie {
     private int id;
     private String title;
-    private List<String> genres;  // Genres could be a list, e.g., ["Action", "Drama"]
+    private String[] genres;  // Genres could be a list, e.g., ["Action", "Drama"]
+    private double rating;
+    private double weightedRating;
 
-    public Movie(int id, String title, List<String> genres) {
+    public Movie(int id, String title, String[] genres) {
         this.id = id;
         this.title = title;
         this.genres = genres;
+        this.rating = rating;
+        
     }
 
     // Getters and Setters
@@ -26,16 +29,16 @@ public class Movie {
         return title;
     }
 
-    public List<String> getGenres() {
+    public String[] getGenres() {
         return genres;
     }
 
     @Override
     public String toString() {
         StringBuilder genresString = new StringBuilder();
-        for (int i = 0; i < genres.size(); i++) {
-            genresString.append(genres.get(i));
-            if (i < genres.size() - 1) { // Add a comma and space if it's not the last genre
+        for (int i = 0; i < genres.length; i++) {
+            genresString.append(genres[i]);
+            if (i < genres.length - 1) { // Add a comma and space if it's not the last genre
                 genresString.append(", ");
             }
         }
