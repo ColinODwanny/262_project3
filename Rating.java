@@ -1,7 +1,8 @@
-public class Rating {
-    int userId;
-    int movieId;
-    double rating;
+// Rating class
+class Rating {
+    private int userId;
+    private int movieId;
+    private double rating;
 
     public Rating(int userId, int movieId, double rating) {
         this.userId = userId;
@@ -9,8 +10,11 @@ public class Rating {
         this.rating = rating;
     }
 
-    @Override
-    public String toString() {
-        return "Rating{userId=" + userId + ", movieId=" + movieId + ", rating=" + rating + "}";
+    public double getRating() {
+        return rating;
+    }
+
+    public int getMovieId() {
+        return movieId;
     }
 }
