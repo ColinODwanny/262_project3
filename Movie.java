@@ -1,26 +1,16 @@
-/**
- * Write a description of class movies here.
- *
- * @author (your name)
- * @version (a version number or a date)
- */
+import java.util.List;
 
 public class Movie {
     private int id;
     private String title;
-    private String[] genres;  // Genres could be a list, e.g., ["Action", "Drama"]
-    private double rating;
-    private double weightedRating;
+    private List<String> genres;
 
-    public Movie(int id, String title, String[] genres) {
+    public Movie(int id, String title, List<String> genres) {
         this.id = id;
         this.title = title;
         this.genres = genres;
-        this.rating = rating;
-        
     }
 
-    // Getters and Setters
     public int getId() {
         return id;
     }
@@ -29,20 +19,7 @@ public class Movie {
         return title;
     }
 
-    public String[] getGenres() {
+    public List<String> getGenres() {
         return genres;
     }
-
-    @Override
-    public String toString() {
-        StringBuilder genresString = new StringBuilder();
-        for (int i = 0; i < genres.length; i++) {
-            genresString.append(genres[i]);
-            if (i < genres.length - 1) { // Add a comma and space if it's not the last genre
-                genresString.append(", ");
-            }
-        }
-        return title + " (" + genresString + ")";
-    }
-
 }
