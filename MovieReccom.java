@@ -11,203 +11,215 @@ import java.util.*;
  */
 public class MovieReccom {
 
-    //I am Unsure if these should be a static variables or not
-    static LinkedList<Integer> commaIndexes = new LinkedList<>();
-    static String[] PartsOfMovie = new String[3];
-    static char comma = ',';
-    
-    
-        public static void main(String[] args) {
-            Scanner in = new Scanner(System.in);
-            // Default dataset is small
-            String dataset = "small";
-    
-            // Check if the command-line argument is "large" to switch to a larger dataset
-            if (args.length > 0 && args[0].equals("large")) {
-                dataset = "large";  // Change dataset to "large" if the command-line argument is "large"
+    // Movie data structures
+    static Map<Integer, Movie> movieMap = new HashMap<>(); // Map to store movies with their movieId as key
+    static Map<Integer, List<Rating>> ratingsMap = new HashMap<>(); // Map to store lists of ratings for each movieId
+    static List<Movie> movieList = new ArrayList<>(); // List to store all movies
+
+    // Method to load the dataset based on the input (either "small" or "large")
+    public static void loadData(String dataset) {
+        // Load movies and ratings from files
+        try (BufferedReader movieReader = new BufferedReader(new FileReader("movies.csv"));
+        BufferedReader ratingReader = new BufferedReader(new FileReader("ratings.csv"))) {
+
+            // Read and process movies.csv
+            String movieLine;
+            movieReader.readLine();  // Skip header row
+            while ((movieLine = movieReader.readLine()) != null) {
+                String[] parts = CSVLine(movieLine);  // Parse the movie line into parts
+                int movieId = Integer.parseInt(parts[0]);  // Movie ID (parsed as integer)
+                String title = parts[1];  // Movie title
+                String[] genres = parts[2].split("\\|");  // Movie genres (separated by |)
+                List<String> genreList = new ArrayList<>(Arrays.asList(genres));  // Convert genres to a list
+                Movie movie = new Movie(movieId, title, genreList);  // Create a new Movie object
+                movieMap.put(movieId, movie);  // Add the movie to the movieMap
+                movieList.add(movie);  // Add the movie to the movieList
             }
-    
-            // Call the loadData method with the selected dataset
-            loadData(dataset);
-            
 
-            //First menu
-            System.out.println("Choose from the following menu:");
-            System.out.println("  1 - See top n");
-            System.out.println("  2 - See top n in given genre(s)");
-            System.out.println("  3 - search movie titles");
-            System.out.println("  4 - quit");
+            // Read and process ratings.csv
+            String ratingLine;
+            ratingReader.readLine();  // Skip header row
+            while ((ratingLine = ratingReader.readLine()) != null) {
+                String[] parts = ratingLine.split(",");  // Split the rating line into parts
+                int userId = Integer.parseInt(parts[0]);  // User ID (parsed as integer)
+                int movieId = Integer.parseInt(parts[1]);  // Movie ID (parsed as integer)
+                double rating = Double.parseDouble(parts[2]);  // Rating (parsed as double)
+                Rating ratingObj = new Rating(userId, movieId, rating);  // Create a new Rating object
 
-            //This loop ensures that the user enters an int that is between 1 (inclusive) and 4 (inclusive)
-            int menuOneOptionInt = 0;
-            boolean keepLooping = true;
-            while(keepLooping){
-                String menuOneOption = in.next();
-                try { 
-                    menuOneOptionInt = Integer.parseInt(menuOneOption);
-                    if (menuOneOptionInt > 0 && menuOneOptionInt < 5) {
-                        keepLooping = false;
-                    } else {
-                        System.out.println("Please enter a valid integer (1 - 4)");
-                    }
-                } catch (NumberFormatException nfe) {
-                    System.out.println("Please enter a valid integer (1 - 4)");
+                // Get the list of ratings for the movieId from the ratingsMap
+                List<Rating> ratings = ratingsMap.get(movieId);
+
+                // If the list of ratings for the movieId doesn't exist, create a new list and add it to the map
+                if (ratings == null) {
+                    ratings = new ArrayList<>();  // Create a new ArrayList if it doesn't exist
+                    ratingsMap.put(movieId, ratings);  // Add the new list to the map with the movieId as key
                 }
-            }
 
-            if (menuOneOptionInt == 1) {
-                int topN = 0;
-                keepLooping = true;
-                while(keepLooping) {
-                    try {
-                        System.out.print("n: ");
-                        topN = in.nextInt();
-                        keepLooping = false;
-                    } catch (InputMismatchException ime) {
-                        System.out.println("Please enter a valid integer");
-                        //clears out buffer
-                        in.nextLine();
-                    }
-                }
-                //optionOne(topN);
-
-                
+                // Add the ratingObj to the list of ratings for the movie
+                ratings.add(ratingObj);  // Add the rating to the list
             }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());  // Handle file reading errors
         }
-    
-        // Method to load the dataset based on the input (either "small" or "large")
-        public static void loadData(String dataset) {
-            // Create a map to store movies by their movie ID
-            Map<Integer, Movie> movieMap = new HashMap<>();
-    
-            // Create a list to store ratings
-            List<Rating> ratingsList = new ArrayList<>();
-    
-            // Load movies from the movies.csv file
-            try (BufferedReader movieReader = new BufferedReader(new FileReader("small_movies.csv"));
-            BufferedReader ratingReader = new BufferedReader(new FileReader(dataset + "/ratings.csv"));) {
-
-                String ratingLine;
-
-                //This gets rid of the table headings because if we pass "userId" into parseInt, it'll break
-                ratingReader.readLine();
-                while ((ratingLine = ratingReader.readLine()) != null) {
-                    // Split the line into parts (userId, movieId, and rating)
-                    String[] parts = ratingLine.split(",");
-    
-                    // Parse the userId, movieId, and rating values
-                    
-                    int userId = Integer.parseInt(parts[0]);
-                    int movieId = Integer.parseInt(parts[1]);
-                    double rating = Double.parseDouble(parts[2]);
-    
-                    // Create a Rating object and add it to the ratingsList
-                    ratingsList.add(new Rating(userId, movieId, rating));
-                }
-                String movieLine;
-
-                /*This gets rid of the first line because it has the table headings. 
-                if we pass the table heading "movie" into ParseInt, it is going to throw an error*/ 
-                movieReader.readLine();
-
-                while ((movieLine = movieReader.readLine()) != null) {
-                    // Parse the current CSV line into parts using the CSVLine method
-                    String[] parts = CSVLine(movieLine);
-    
-                    // Get the movie ID, title, and genre from the parsed parts
-                    int movieId = Integer.parseInt(parts[0]);
-                    String title = parts[1];
-    
-                    String[] genres = parts[2].split("\\|"); 
-    
-                    // Create a list of genres for the current movie
-                    List<String> genreList = new ArrayList<>(Arrays.asList(genres));
-    
-                    // Create a Movie object and store it in the movieMap with the movieId as the key
-
-                    //movieMap.put(movieId, new Movie(movieId, title, genreList));
-                }
-            } catch (IOException e) {
-                // If the movies.csv file can't be found or read, print an error message
-                System.out.println("Can't find movies.csv");
-            }
-            /* 
-            // Load ratings from the ratings.csv file based on the specified dataset
-            try (BufferedReader ratingReader = new BufferedReader(new FileReader(dataset + "/ratings.csv"))) {
-                String line;
-
-                //This gets rid of the table headings because if we pass "userId" into parseInt, it'll break
-                ratingReader.readLine();
-                while ((line = ratingReader.readLine()) != null) {
-                    // Split the line into parts (userId, movieId, and rating)
-                    String[] parts = line.split(",");
-    
-                    // Parse the userId, movieId, and rating values
-                    
-                    int userId = Integer.parseInt(parts[0]);
-                    int movieId = Integer.parseInt(parts[1]);
-                    double rating = Double.parseDouble(parts[2]);
-    
-                    // Create a Rating object and add it to the ratingsList
-                    ratingsList.add(new Rating(userId, movieId, rating));
-                }
-            } catch (IOException e) {
-                // If the ratings.csv file can't be found or read, print an error message
-                System.out.println("This file DOES NOT exist ");
-            }
-                */
-        }
-    
-        
-        /*
-        // Helper method to handle CSV lines (quoted values, commas).
-        // It is incomplete 
-         */
-        /*
-        public static String[] CSVLine(String line) {
-        // List to store the resulting fields from the CSV line
-        List<String> result = new ArrayList<>();
-    
-        // Boolean flag to indicate whether we are inside quotes or not
-        boolean inQuotes = false;
-    
-        // StringBuilder to accumulate characters for the current field
-        StringBuilder current = new StringBuilder();
-    
-        // Loop through each character in the line
-        for (char ch : line.toCharArray()) {
-        // Check if we encounter a quote character (not escaped by a backslash)
-        if (ch == '"' && (current.length() == 0 || current.charAt(current.length() - 1) != '\')) {
-        // Toggle the inQuotes flag when encountering an unescaped quote
-        inQuotes = !inQuotes;
-        }
-    
-        }
-    
-    }*/
-    
-        public static String[] CSVLine(String line){
-            /*commaIndexes is going to hold the indexes of all the commas in the line.
-            Then we are going to split the line on the first and last comma using peekFirst() and peakLast().
-            first we clear the commaIndexes because otherwise it will be holding values from the last line*/
-            commaIndexes.clear();
-    
-            if (line != null) {
-                for(int i = 0; i < line.length(); i++){
-                    if (line.charAt(i) == comma) {
-                        commaIndexes.add(i);
-                    }
-                }
-            }
-        PartsOfMovie[0] = line.substring(0, commaIndexes.peekFirst());
-        PartsOfMovie[1] = line.substring(commaIndexes.peekFirst() + 1, commaIndexes.peekLast());
-        PartsOfMovie[2] = line.substring(commaIndexes.peekLast() + 1);
-
-        return PartsOfMovie;
     }
 
-    public void optionOne(int n) {
+    // Method to compute the weighted average for a movie based on the formula provided
+    public static double computeWeightedAverage(Movie movie) {
+        List<Rating> ratings = ratingsMap.get(movie.getId());  // Get the list of ratings for the movieId
 
+        // If there are fewer than 15 ratings, return 0 or handle it accordingly
+        if (ratings == null || ratings.size() < 15) {
+            return 0;  // If there are too few ratings, we return 0
+        }
+
+        // Calculate the average rating for the movie
+        double totalRating = 0;
+        for (Rating rating : ratings) {
+            totalRating += rating.getRating();  // Sum up all ratings for the movie
+        }
+        double averageRating = totalRating / ratings.size();  // Calculate the average rating for the movie
+
+        // Calculate the global average rating (across all movies)
+        double globalAverageRating = 0.0;
+        int totalMovies = 0;
+        for (List<Rating> movieRatings : ratingsMap.values()) {
+            for (Rating rating : movieRatings) {
+                globalAverageRating += rating.getRating();  // Sum up all ratings across all movies
+                totalMovies++;  // Count the number of ratings
+            }
+        }
+        globalAverageRating /= totalMovies;  // Calculate the global average rating across all movies
+
+        // Set the minimum number of ratings required for significance
+        int minRatingsThreshold = 15;
+
+        // Calculate the weighted average score based on the provided formula
+        double score = (ratings.size() - averageRating) / (ratings.size() + minRatingsThreshold) + ((minRatingsThreshold * globalAverageRating) / (ratings.size() + minRatingsThreshold));
+
+        return score;  // Return the weighted average score
+    }
+
+    // Method to display the top N movies
+    public static void displayTopN(int n) {
+        // Sort the movies based on their weighted average using the MovieComparator class
+        movieList.sort(new MovieComparator());
+
+        System.out.println("Top " + n + " Movies:");
+
+        // Loop through the top n movies to display them
+        for (int i = 0; i < n && i < movieList.size(); i++) {
+            Movie movie = movieList.get(i);  // Get the current movie
+
+            // Compute the weighted average for the movie using the computeWeightedAverage method
+            double weightedAvg = computeWeightedAverage(movie);
+
+            // Compute the true average from the ratings of the movie manually (no stream)
+            List<Rating> ratings = ratingsMap.get(movie.getId());
+            double totalRating = 0.0;
+            for (Rating rating : ratings) {
+                totalRating += rating.getRating();  // Sum all ratings
+            }
+
+            // Calculate the true average using a simple loop
+            double trueAvg;
+            if (ratings.size() > 0) {
+                trueAvg = totalRating / ratings.size();  // Calculate true average
+            } else {
+                trueAvg = 0.0;  // If no ratings, set true average to 0
+            }
+
+            // Get the year from the movie title by manually finding the parentheses
+            String title = movie.getTitle();
+            int startIdx = title.indexOf('(');
+            int endIdx = title.indexOf(')');
+
+            String year = "";
+            if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+                year = title.substring(startIdx + 1, endIdx);  // Extract the year from the title
+            }
+
+            // Build the genres string
+            StringBuilder genresString = new StringBuilder();
+            List<String> genres = movie.getGenres();
+            for (int j = 0; j < genres.size(); j++) {
+                genresString.append(genres.get(j));  // Add each genre to the string
+                if (j < genres.size() - 1) {
+                    genresString.append(", ");  // Add commas between genres
+                }
+            }
+
+            // Print movie details, including weighted average, true average, year, and genres
+            System.out.printf("%d. %.3f (%.3f) %s (%s) [%s]\n",
+                i + 1, 
+                weightedAvg, 
+                trueAvg, 
+                movie.getTitle(), 
+                year, 
+                genresString.toString());  // Print the formatted output
+        }
+    }
+
+    // Method to handle the CSV line parsing correctly
+    public static String[] CSVLine(String line) {
+        String[] result = new String[3];
+        int firstCommaIndex = line.indexOf(",");
+        int lastCommaIndex = line.lastIndexOf(",");
+
+        result[0] = line.substring(0, firstCommaIndex);  // Movie ID
+        result[1] = line.substring(firstCommaIndex + 1, lastCommaIndex);  // Title
+        result[2] = line.substring(lastCommaIndex + 1);  // Genres
+        return result;
+    }
+
+    
+    public static void searchByGenre() {
+    
+    }
+
+    
+    public static void searchByTitle() {
+    
+    }
+     
+
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+
+        String dataset = "small";
+        if (args.length > 0 && args[0].equals("large")) {
+            dataset = "large";
+        }
+
+        loadData(dataset);  // Load movie and rating data based on dataset choice
+
+        // Display menu
+        while (true) {
+            System.out.println("Choose from the following menu:");
+            System.out.println("1 - See top n");
+            System.out.println("2 - See top n in given genre(s)");
+            System.out.println("3 - Search movie titles");
+            System.out.println("4 - Quit");
+
+            int menuOption = in.nextInt();
+            switch (menuOption) {
+                case 1:
+                    System.out.print("Enter number of top movies to display: ");
+                    int topN = in.nextInt();
+                    displayTopN(topN);
+                    break;
+                case 2:
+                    //searchByGenre();
+                    break;
+                case 3:
+                    //searchByTitle();
+                    break;
+                case 4:
+                    System.out.println("Exiting...");
+                    in.close();
+                    return;
+                default:
+                    System.out.println("Invalid option. Try again.");
+            }
+        }
     }
 }
-
