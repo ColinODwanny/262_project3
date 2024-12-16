@@ -1,0 +1,78 @@
+public static void searchByGenre(String genre, int n) {
+    System.out.println("Top " + n + " Movies in genre: " + genre);
+
+    // List to hold movies in the specified genre
+    List<Movie> genreMovies = new ArrayList<>();
+
+    // Filter movies that belong to the specified genre
+    for (int i = 0; i < movieList.size(); i++) {
+        Movie movie = movieList.get(i);
+        if (movie.getGenres().contains(genre)) {
+            genreMovies.add(movie);
+        }
+    }
+
+    // Sort the filtered movies by their weighted average rating in descending order
+    for (int i = 0; i < genreMovies.size() - 1; i++) {
+        for (int j = i + 1; j < genreMovies.size(); j++) {
+            Movie movie1 = genreMovies.get(i);
+            Movie movie2 = genreMovies.get(j);
+            double weightedAvg1 = computeWeightedAverage(movie1);
+            double weightedAvg2 = computeWeightedAverage(movie2);
+
+            // Swap movies if needed for descending order
+            if (weightedAvg1 < weightedAvg2) {
+                genreMovies.set(i, movie2);
+                genreMovies.set(j, movie1);
+            }
+        }
+    }
+
+    // Display the top `n` movies in the genre
+    for (int i = 0; i < n && i < genreMovies.size(); i++) {
+        Movie movie = genreMovies.get(i);
+        double weightedAvg = computeWeightedAverage(movie);
+
+        // Compute the true average from the ratings of the movie manually
+        List<Rating> ratings = ratingsMap.get(movie.getId());
+        double totalRating = 0.0;
+        for (Rating rating : ratings) {
+            totalRating += rating.getRating();
+        }
+        double trueAvg = ratings.size() > 0 ? totalRating / ratings.size() : 0.0;
+
+        // Get the year from the movie title by manually finding the parentheses
+        String title = movie.getTitle();
+        int startIdx = title.indexOf('(');
+        int endIdx = title.indexOf(')');
+
+        String year = "";
+        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+            year = title.substring(startIdx + 1, endIdx);  // Extract the year from the title
+        }
+
+        // Build the genres string manually
+        StringBuilder genresString = new StringBuilder();
+        List<String> genres = movie.getGenres();
+        for (int j = 0; j < genres.size(); j++) {
+            genresString.append(genres.get(j));
+            if (j < genres.size() - 1) {
+                genresString.append(", ");
+            }
+        }
+
+        // Print movie details with weighted average, true average, year, and genres
+        System.out.printf("%d. %.3f (%.3f) %s (%s) [%s]\n",
+                i + 1, 
+                weightedAvg, 
+                trueAvg, 
+                movie.getTitle(), 
+                year, 
+                genresString.toString());
+    }
+
+    // If no movies are found in the specified genre
+    if (genreMovies.isEmpty()) {
+        System.out.println("No movies found in the specified genre.");
+    }
+}
